@@ -1,0 +1,241 @@
+﻿@page "/Admin"
+
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Admin page</PageTitle>
+
+
+<br />
+<Dropdown Display="Display.InlineBlock">
+	<DropdownToggle Color="Color.Primary">Menu for admin</DropdownToggle>
+	<DropdownMenu MaxMenuHeight="100px">
+		<DropdownItem Clicked="ShowAddProductForm">Add new Product</DropdownItem>
+		<DropdownItem Clicked="SeeAllCustomers">See all customers</DropdownItem>
+		<DropdownItem Clicked="SeeAllProducts">See all products</DropdownItem>
+		<DropdownItem Clicked="ShowRemoveProductForm">Remove a product</DropdownItem>
+		<DropdownItem Clicked="ShowUpdateProductForm">Update a product</DropdownItem>
+	</DropdownMenu>
+</Dropdown>
+<br />
+<br />
+
+@if (AddNewProduct)
+{
+	<h3>Enter details for new product</h3>
+	<br />
+	<EditForm Model="@NewProduct" OnValidSubmit="AddProduct" FormName="productForm">
+		<DataAnnotationsValidator />
+		<Field>
+			<FieldLabel>Name</FieldLabel>
+			<TextEdit @bind-Text="@NewProduct.Name" />
+		</Field>
+		<Field>
+			<FieldLabel>Description</FieldLabel>
+			<TextEdit @bind-Text="@NewProduct.Description" />
+		</Field>
+		<Field>
+			<FieldLabel>Price</FieldLabel>
+			<NumericEdit @bind-Value="@NewProduct.Price" />
+		</Field>
+		<Field>
+			<FieldLabel>Category Id - 1 Hygiene, 2 Clothing</FieldLabel>
+			<NumericEdit @bind-Value="@NewProduct.ProductCategoryId" />
+		</Field>
+		<Field>
+			<Check TValue="bool" @bind-Checked="@NewProduct.OnStock">On stock</Check>
+		</Field>
+		<Field>
+			<Check TValue="bool" @bind-Checked="@NewProduct.InAssortment">In assortment</Check>
+		</Field>
+		<button type="submit" class="btn btn-success">Add</button>
+	</EditForm>
+}
+@if (ShowCustomers)
+{
+	<h3>FreshTread customers</h3>
+	<br />
+
+	<Div class="col-md-4 justify-content-start d-flex">
+		<Field Display="Display.InlineFlex" Margin="Margin.Is0.FromBottom">
+			<TextEdit Placeholder="Search by email" @bind-Text="@CustomerByEmailInsteadOfId" />
+			<Button Color="Color.Success" Clicked="GetCustomerByEmail">Search</Button>
+		</Field>
+		<Field Display="Display.InlineFlex" Margin="Margin.Is0.FromBottom">
+			<Button Color="Color.Success" Clicked="ShowAllCustomerOrders" Class="ml-2">All customer orders</Button>
+		</Field>
+	</Div>
+
+	<br />
+	<br />
+	<Virtualize Items="@Customers" OverscanCount="50">
+		<Div class="card mb-3" style="max-width:500px">
+			<div class="card-body">
+				<div class="row">
+					<div class="col">
+						<h5 class="card-title">Full name: @context.FirstName @context.LastName</h5>
+						<p class="card-text">Customer number: @context.CustomerId</p>
+						<p class="card-text">Street: @context.StreetAddress</p>
+						<p class="card-text">Postal code: @context.PostalCode, @context.City</p>
+						<p class="card-text">Country: @context.Country</p>
+						<p class="card-text">E-mail: @context.Email</p>
+						<p class="card-text">Phone: @context.Phone</p>
+					</div>
+				</div>
+			</div>
+		</Div>
+
+	</Virtualize>
+
+}
+@if (ShowCustomerOrders)
+{
+	<h3>All customer orders</h3>
+	<br />
+	<Virtualize Items="@CustomerOrders">
+		<div class="card mb-3">
+			<div class="card-header">
+				Order: @context.Id
+			</div>
+			<div class="card-body">
+				<h6>Order Date: @context.OrderDate</h6>
+				<h6>Customer ID: @context.Customer.CustomerId</h6>
+				<h6>Name: @context.Customer.FirstName @context.Customer.LastName</h6>
+				<h6>Email: @context.Customer.Email</h6>
+				<h6>Phone: @context.Customer.Phone</h6>
+				<h6>Address: @context.Customer.StreetAddress, @context.Customer.City, @context.Customer.Country, @context.Customer.PostalCode</h6>
+
+				<h6>Total Price: @context.OrderTotal</h6>
+
+				<h6>Products:</h6>
+				<ul class="list-group">
+					@foreach (var product in @context.Products)
+					{
+						<li class="list-group-item">
+							<h6>Product ID: @product.ProductId</h6>
+							<h6>Name: @product.Name</h6>
+							<h6>Description: @product.Description</h6>
+							<h6>Price: @product.Price</h6>
+						</li>
+					}
+				</ul>
+			</div>
+		</div>
+	</Virtualize>
+
+
+}
+
+@if (ShowSingleCustomer)
+{
+	<div class="card mb-3">
+		<div class="card-body">
+			<div class="row">
+				<div class="col">
+					<h5 class="card-title">Full name: @CustomerByEmail.FirstName @CustomerByEmail.LastName</h5>
+					<p class="card-text">Customer number: @CustomerByEmail.CustomerId</p>
+					<p class="card-text">Street: @CustomerByEmail.StreetAddress</p>
+					<p class="card-text">Postal code: @CustomerByEmail.PostalCode, @CustomerByEmail.City</p>
+					<p class="card-text">Country: @CustomerByEmail.Country</p>
+					<p class="card-text">E-mail: @CustomerByEmail.Email</p>
+					<p class="card-text">Phone: @CustomerByEmail.Phone</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+}
+
+@if (ShowProducts)
+{
+	<h3>All products</h3>
+	<br />
+	<Virtualize Items="@Products" OverscanCount="50">
+		<div class="card mb-3 text-align-center" style="max-width:600px">
+			<div class="card-body">
+				<div class="row">
+					<div class="col">
+						<h5 class="card-title">@context.Name</h5>
+						<p class="card-text">Product number: @context.ProductId</p>
+						<p class="card-text">Description: @context.Description</p>
+						<p class="card-text">Price: @context.Price</p>
+						<p class="card-text">Category: @context.ProductCategory.CategoryName</p>
+						<p class="card-text">In Assortment: @context.InAssortment</p>
+						<p class="card-text">On Stock: @context.OnStock</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</Virtualize>
+}
+@if (RemoveAProduct)
+{
+	<h3>Enter product number to be deleted</h3>
+
+	<EditForm Model="@ProductToRemove" OnValidSubmit="RemoveProduct" FormName="removeProductForm">
+		<DataAnnotationsValidator />
+		<Field>
+			<FieldLabel>Product Id to delete</FieldLabel>
+			<NumericEdit @bind-Value="@ProductToRemove.ProductId" PlaceHolder="" />
+		</Field>
+
+		<Button Type="ButtonType.Submit "Color="Color.Primary" Clicked="@ShowLoading" Loading="@isLoading">
+			<LoadingTemplate>
+				Deleting product...
+			</LoadingTemplate>
+			<ChildContent>
+				Delete
+			</ChildContent>
+		</Button>
+
+	</EditForm>
+
+
+
+}
+
+@if (UpdateAProduct)
+{
+	<h3>Update product</h3>
+	<br />
+
+	<Field>
+		<FieldLabel>Enter product id to update</FieldLabel>
+		<NumericEdit @bind-Value="@ProductId" />
+	</Field>
+	<Button Color="Color.Success" Clicked="GetProductById">Get product to update</Button>
+	<br />
+	<br />
+
+
+	<EditForm Model="@ProductToUpdate" OnValidSubmit="UpdateProduct" FormName="updateProductForm">
+		<DataAnnotationsValidator />
+		<Field>
+			<FieldLabel>Product Id</FieldLabel>
+			<NumericEdit @bind-Value="@ProductToUpdate.ProductId" />
+		</Field>
+		<Field>
+			<FieldLabel>Name</FieldLabel>
+			<TextEdit @bind-Text="@ProductToUpdate.Name" />
+		</Field>
+		<Field>
+			<FieldLabel>Description</FieldLabel>
+			<TextEdit @bind-Text="@ProductToUpdate.Description" />
+		</Field>
+		<Field>
+			<FieldLabel>Price</FieldLabel>
+			<NumericEdit @bind-Value="@ProductToUpdate.Price" />
+		</Field>
+		<Field>
+			<FieldLabel>Category Id - 1 Hygiene, 2 Clothing</FieldLabel>
+			<NumericEdit @bind-Value="@ProductToUpdate.ProductCategoryId" />
+		</Field>
+		<Field>
+			<Check TValue="bool" @bind-Checked="@ProductToUpdate.OnStock">On stock</Check>
+		</Field>
+		<Field>
+			<Check TValue="bool" @bind-Checked="@ProductToUpdate.InAssortment">In assortment</Check>
+		</Field>
+		<input type="submit" class="btn btn-success" value="Update product" />
+	</EditForm>
+}

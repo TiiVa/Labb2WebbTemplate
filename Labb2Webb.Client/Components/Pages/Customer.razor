@@ -1,0 +1,250 @@
+﻿@page "/Customer"
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+
+
+<PageTitle>Customer</PageTitle>
+
+
+<br />
+
+<Container>
+	<Div Margin="Margin.IsAuto.OnX" Width="Width.Is50" Style="margin-top:5%;">
+		<Card Shadow="Shadow.Default">
+			<CardBody>
+				<Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" TextAlignment="TextAlignment.Center">
+					Login
+				</Heading>
+				<EditForm Model="CustomerLoginDto" FormName="UserLoginForm" OnValidSubmit="LoginAccount">
+					<DataAnnotationsValidator />
+					<Field>
+						<FieldLabel>
+							E-mail
+						</FieldLabel>
+						<FieldBody>
+							<InputText @bind-Value="CustomerLoginDto.Email" Placeholder="name@email.com" class="form-control" id="email" />
+							<ValidationMessage For="@(() => CustomerLoginDto.Email)" />
+						</FieldBody>
+					</Field>
+					<Field>
+						<button class="btn btn-primary" Color="Color.Primary" type="submit" Block>
+							Login
+						</button>
+					</Field>
+					<Field>
+						<Button Color="Color.Primary" Clicked="SeeRegisterAsNewCustomerForm">Register as a new customer</Button>
+					</Field>
+				</EditForm>
+			</CardBody>
+		</Card>
+	</Div>
+</Container>
+
+@switch (LoginModalVisible)
+{
+	case LoginModalState.Success:
+		<Modal Visible="@((LoginModalVisible == LoginModalState.Success))">
+			<ModalContent Centered>
+				<ModalHeader>
+					<CloseButton @onclick="() => ToggleLoginModal(LoginModalState.None)" />
+				</ModalHeader>
+				<ModalBody>
+					<Div Flex="Flex.JustifyContent.Center.AlignItems.Center" Padding="Padding.Is3">
+						<Icon Name="IconName.CheckCircle" IconSize="IconSize.x3" TextColor="TextColor.Success" />
+					</Div>
+					<Paragraph TextAlignment="TextAlignment.Center" TextWeight="TextWeight.Bold">
+						You are now logged in!
+					</Paragraph>
+				</ModalBody>
+				<ModalFooter Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">
+					<Button Color="Color.Primary" @onclick="() => ToggleLoginModal(LoginModalState.None)">
+						Continue
+					</Button>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+		;
+		break;
+
+	case LoginModalState.Failure:
+		<Modal Visible="@((LoginModalVisible == LoginModalState.Failure))">
+			<ModalContent Centered>
+				<ModalHeader>
+					<CloseButton @onclick="() => ToggleLoginModal(LoginModalState.None)" />
+				</ModalHeader>
+				<ModalBody>
+					<Div Flex="Flex.JustifyContent.Center.AlignItems.Center" Padding="Padding.Is3">
+						<Icon Name="IconName.ExclamationTriangle" IconSize="IconSize.x3" TextColor="TextColor.Danger" />
+					</Div>
+					<Paragraph TextAlignment="TextAlignment.Center" TextWeight="TextWeight.Bold">
+						Login failed. Please try again.
+					</Paragraph>
+				</ModalBody>
+				<ModalFooter Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">
+					<Button Color="Color.Primary" @onclick="() => ToggleLoginModal(LoginModalState.None)">
+						Close
+					</Button>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+		;
+		break;
+}
+
+<br />
+<br />
+
+@if (ShowRegisterAsNewCustomerForm)
+{
+	<div class="card mb-3">
+		<div class="card-body">
+			<div class="row">
+				<div class="col">
+					<h5 class="card-title">Register as a new customer</h5>
+					<p class="card-text">Fill in the form below to register as a new customer</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<Div class="mb-5">
+		<EditForm Model="@NewCustomer" OnValidSubmit="RegisterNewCustomer" FormName="customerForm">
+			<DataAnnotationsValidator />
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.FirstName" Placeholder="First name" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.LastName" Placeholder="Last name" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.Email" Placeholder="Email" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.Phone" Placeholder="Phone number" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.StreetAddress" Placeholder="Street address" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.PostalCode" Placeholder="Postal code" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.City" Placeholder="City" />
+			</Field>
+			<Field>
+				<TextEdit @bind-Text="@NewCustomer.Country" Placeholder="Country" />
+			</Field>
+			<input type="submit" class="btn btn-success" value="Register" />
+		</EditForm>
+	</Div>
+
+
+}
+
+
+
+@if (UpdateProfile)
+{
+	<h3>Update your profile</h3>
+
+	<h4>Welcome @CustomerLoginDto.FirstName! Your customer number is: @CustomerLoginDto.CustomerId</h4>
+	<br/>
+	<br/>
+
+	<Div class="mb-5">
+		<Field>
+			<FieldLabel>Enter your customer number below to get your current details</FieldLabel>
+			<NumericEdit @bind-Value="@CustomerId" />
+		</Field>
+		<Button Color="Color.Success" Clicked="GetCustomer">Get your current details</Button>
+		<br />
+		<br />
+
+
+		<EditForm Model="@CustomerToUpdate" OnValidSubmit="UpdateCustomer" FormName="toUpdateCustomer">
+			<DataAnnotationsValidator />
+			<Field>
+				<FieldLabel>Customer number</FieldLabel>
+				<NumericEdit @bind-Value="@CustomerToUpdate.CustomerId" />
+			</Field>
+			<Field>
+				<FieldLabel>First name</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.FirstName" />
+			</Field>
+			<Field>
+				<FieldLabel>Last name</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.LastName" />
+			</Field>
+			<Field>
+				<FieldLabel>Email</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.Email" />
+			</Field>
+			<Field>
+				<FieldLabel>Phone</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.Phone" />
+			</Field>
+			<Field>
+				<FieldLabel>Street address</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.StreetAddress" />
+			</Field>
+			<Field>
+				<FieldLabel>Postal code</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.PostalCode" />
+			</Field>
+			<Field>
+				<FieldLabel>City</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.City" />
+			</Field>
+			<Field>
+				<FieldLabel>Country</FieldLabel>
+				<TextEdit @bind-Text="@CustomerToUpdate.Country" />
+			</Field>
+			<button type="submit" class="btn btn-success">Update</button>
+			<Button Color="Color.Danger" Outline Clicked="DeleteUser">
+				<Icon Name="IconName.Delete" Margin="Margin.Is2.FromEnd" />
+				Delete profile
+			</Button>
+		</EditForm>
+
+
+	</Div>
+
+
+
+
+
+
+}
+@if (LoginSucceededModalVisible)
+{
+	<Div Flex="Flex.JustifyContent.Center">
+
+
+		<Modal @bind-Visible="@LoginSucceededModalVisible">
+			<ModalContent Centered>
+				<ModalHeader>
+					<CloseButton />
+				</ModalHeader>
+				<ModalBody>
+					<Div Flex="Flex.JustifyContent.Center.AlignItems.Center" Padding="Padding.Is3">
+						<Icon Name="IconName.CheckCircle" IconSize="IconSize.x3" TextColor="TextColor.Success" />
+					</Div>
+					<Paragraph TextAlignment="TextAlignment.Center" TextWeight="TextWeight.Bold">
+						You are now logged in!
+					</Paragraph>
+				</ModalBody>
+				<ModalFooter Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">
+					<Button Color="Color.Primary" Clicked="@ToggleLoginSuccessModal">
+						Continue
+					</Button>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+	</Div>
+
+
+}
+
+
+
+

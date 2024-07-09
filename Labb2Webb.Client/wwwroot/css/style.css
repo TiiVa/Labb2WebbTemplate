@@ -1,0 +1,61 @@
+﻿
+.footer-example a {
+    bottom: 0;
+    left: 5px;
+    width: 100%;
+    background-color: #f8f8f8;
+    padding: 10px;
+    text-align: center;
+}
+
+.card {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.left-content {
+    flex: 1;
+}
+
+.right-image {
+    max-width: 30%;
+}
+
+.card-custom {
+    width: 100%;
+    max-width: 600px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.card-body-custom {
+    flex-grow: 1;
+}
+
+.card-footer-custom {
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-container {
+    display: flex;
+    justify-content: center;
+}
+.body-with-image {
+    background-image: url('Images/DogTakingBath.jpg');
+    background-size: cover; /* Cover the entire page */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-position: center center; /* Center the image */
+}

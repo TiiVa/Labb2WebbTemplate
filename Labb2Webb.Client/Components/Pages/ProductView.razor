@@ -1,0 +1,203 @@
+﻿@page "/ProductView"
+@rendermode InteractiveServer
+
+@inject IHttpClientFactory HttpClientFactory
+
+
+<PageTitle>Products</PageTitle>
+
+<Alert Color="Color.Primary" Visible>
+	Whether you're searching for the perfect pair of jeans to elevate your style or stocking up on essential hygiene products, FreshTreads has you covered. Shop with confidence knowing that you're getting top-notch products from brands you know and trust.
+</Alert>
+
+
+<br />
+
+@if (ShowSearchById)
+{
+	<Row>
+		<h6>Enter product number</h6>
+	</Row>
+	<Row>
+		<Div class="col-2">
+			<EditForm Model="@ProductById" OnValidSubmit="GetById" FormName="getById">
+				<NumericEdit Placeholder="Enter product number" @bind-Value="@ProductById.ProductId" />
+				<br/>
+				<button class="btn btn-success" type="submit">Search</button>
+				<br />
+			</EditForm>
+		</Div>
+		<Div class="col">
+			<Row>
+				<button class="btn btn-primary float-right" @onclick="SeeAllProducts">All products</button>
+				<button class="btn btn-success float-right ml-2" @onclick="SeeShoppingCart">
+					<i class="fas fa-shopping-cart"></i>
+				</button>
+			</Row>
+		</Div>
+	</Row>
+}
+
+<br />
+
+
+@if (ShowAllProducts)
+{
+	<div class="row d-flex justify-content-center">
+		<Virtualize Items="@Products" OverscanCount="50">
+			<div class="col-md-5 card-container">
+				<div class="card card-custom text-align-center">
+					<div class="card-body card-body-custom">
+						<h5 class="card-title">@context.Name</h5>
+						<p class="card-text">Product Number: @context.ProductId</p>
+						<p class="card-text">Description: @context.Description</p>
+						<p class="card-text">Price: @context.Price</p>
+						<p class="card-text">Category: @context.ProductCategory.CategoryName</p>
+						<p class="card-text">In Assortment: @context.InAssortment</p>
+						<p class="card-text">On Stock: @context.OnStock</p>
+					</div>
+					<div class="card-footer card-footer-custom">
+						<Button Color="Color.Success" @onclick="() => AddToCart(context.ProductId)">Buy</Button>
+						<Button Color="Color.Danger" @onclick="() => RemoveFromCart(context.ProductId)">Remove</Button>
+					</div>
+				</div>
+			</div>
+		</Virtualize>
+	</div>
+
+
+}
+
+@if (GetSingleProduct)
+{
+
+	@if (ProductExists)
+	{
+		<div class="card mb-3 text-align-center" style="max-width:600px">
+			<div class="card-body">
+				<div class="row">
+					<div class="col">
+						<h5 class="card-title">@ProductById.Name</h5>
+						<p class="card-text">Product Number: @PreviousProductId</p>
+						<p class="card-text">Description: @ProductById.Description</p>
+						<p class="card-text">Price: @ProductById.Price</p>
+						<p class="card-text">Category: @ProductById.ProductCategory.CategoryName</p>
+						<p class="card-text">In Assortment: @ProductById.InAssortment</p>
+						<p class="card-text">On Stock: @ProductById.OnStock</p>
+						<Button Color="Color.Success" @onclick="() => AddToCart(ProductById.ProductId)">Buy</Button>
+						<Button Color="Color.Danger" @onclick="() => RemoveFromCart(ProductById.ProductId)">Remove</Button>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+	else
+	{
+		<h5>Product not found</h5>
+	}
+
+
+
+}
+@if (ShowCart)
+{
+	<Div>
+		<Row>
+			@foreach (var item in CartProductsForOrder.DistinctBy(c => c.ProductId))
+			{
+				var quantity = CountQuantity(item);
+
+				<div class="card mb-3 text-align-center">
+					<div class="card-body">
+						<p><strong>@item.Name</strong></p>
+						<p>Description: @item.Description</p>
+						<p>Price: @item.Price</p>
+						<p>Category: @item.ProductCategory.CategoryName</p>
+
+						@if (quantity > 0)
+						{
+							<div class="d-flex mb-4" style="max-width: 300px">
+								<button class="btn btn-primary px-3 ms-2" @onclick="@(() => RemoveFromCart(item.ProductId))">
+									<i class="fas fa-minus"></i>
+								</button>
+								<div class="cart-quantity d-flex align-items-center">
+									<input id="@(item.Name)Quantity" min="1" readonly="true" name="quantity" value="@CartProductsForOrder.Count(c => c.ProductId == item.ProductId)" type="number" class="form-control quantity-input" />
+								</div>
+								<button class="btn btn-primary px-3 ms-2" @onclick="@(() => AddToCart(item.ProductId))">
+									<i class="fas fa-plus"></i>
+								</button>
+							</div>
+						}
+					</div>
+				</div>
+
+			}
+		</Row>
+		<Row>
+			<h5>Total price: @TotalPrice() SEK</h5>
+		</Row>
+
+		<Row>
+			<Div class="col">
+				<Button Color="Color.Danger" @onclick="@(CloseShoppingCart)">Close shopping cart</Button>
+			</Div>
+		</Row>
+	</Div>
+
+	
+	<Row Margin="Margin.Is5.FromTop">
+		<Div Margin="Margin.IsAuto.OnAll" Width="Width.Is75">
+			<Heading Size="HeadingSize.Is2" Margin="Margin.Is3.FromBottom" TextAlignment="TextAlignment.Center">
+				Ready to order? Enter your customer number below and hit the Purchase button
+			</Heading>
+		</Div>
+	</Row>
+	<Div Margin="Margin.IsAuto.OnAll" Width="Width.Is75">
+		<Row>
+			<Div class="text-center" style="width: 100%;">
+				<InputNumber TValue="int" Placeholder="Enter customer number" Margin="Margin.Is3.FromBottom" @bind-Value="@CustomerForOrder.CustomerId"></InputNumber>
+			</Div>
+		</Row>
+	</Div>
+
+	<Row>
+		<Div Margin="Margin.IsAuto.OnAll" Width="Width.Is50" TextAlignment="TextAlignment.Center">
+			<Button Color="Color.Success" Size="Size.Large" Margin=" Margin.Is5.FromTop" @onclick="@(AddOrder)">Purchase</Button>
+		</Div>
+	</Row>
+
+
+
+}
+
+@if (modalVisible)
+{
+	<Div Flex="Flex.JustifyContent.Center">
+
+
+		<Modal @bind-Visible="@modalVisible">
+			<ModalContent Centered>
+				<ModalHeader>
+					<CloseButton />
+				</ModalHeader>
+				<ModalBody>
+					<Div Flex="Flex.JustifyContent.Center.AlignItems.Center" Padding="Padding.Is3">
+						<Icon Name="IconName.CheckCircle" IconSize="IconSize.x3" TextColor="TextColor.Success" />
+					</Div>
+					<Paragraph TextAlignment="TextAlignment.Center" TextWeight="TextWeight.Bold">
+						Thank you for your purchase!
+					</Paragraph>
+				</ModalBody>
+				<ModalFooter Flex="Flex.JustifyContent.Center.AlignItems.Center" Gap="Gap.Is3">
+					<Button Color="Color.Primary" Clicked="@ToggleModal">
+						Continue
+					</Button>
+				</ModalFooter>
+			</ModalContent>
+		</Modal>
+	</Div>
+
+
+}
+

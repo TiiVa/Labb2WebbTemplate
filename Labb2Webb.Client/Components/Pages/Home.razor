@@ -1,0 +1,44 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@inject IHttpClientFactory HttpClientFactory
+
+
+
+<PageTitle>Home</PageTitle>
+
+
+<Container>
+	<Div Width="Width.Auto" Padding="Padding.Is5" TextAlignment="TextAlignment.Center" TextSize="TextSize.Heading4">
+		<Heading style="text-align: center; text-bold;">Welcome to FreshTreads, your one-stop destination for the latest trends in clothing and hygiene products!</Heading>
+		<Paragraph style="font-size: 18px; line-height: 1.5; text-align: center; color:black center; margin-top: 20px;">
+			 <br/><br/> At FreshTreads, we believe that fashion is more than just clothing; it's a statement of individuality and expression.
+			Founded with a passion for providing quality products and exceptional customer service, FreshTreads has quickly become a trusted name in the industry. We pride ourselves on offering a curated selection of the most popular clothing brands.
+			But we're more than just a clothing store. We understand the importance of personal care and hygiene, which is why we also offer a wide range of well-known hygiene products to help you look and feel your best every day.
+			
+			Join us on this journey as we continue to provide the latest fashion trends and essential hygiene products to our valued customers. <br/> Experience the FreshTreads difference today!
+		</Paragraph>
+	</Div>
+</Container>
+
+<Container Height="Height.Is100">
+	<Carousel @bind-SelectedSlide="@selectedSlide">
+		<CarouselSlide Name="1">
+			<Image Source="Images/BoysNGirlsJeans.jpg" Text="BoyAndGirl" Display="Display.Block" Width="Width.Is100" class="carousel-image"/>
+		</CarouselSlide>
+		<CarouselSlide Name="2">
+			<Image Source="Images/Lee.jpg" Text="Jeans" Display="Display.Block" Width="Width.Is100" class="carousel-image" />
+		</CarouselSlide>
+		<CarouselSlide Name="3">
+			<Image Source="Images/Skate.jpg" Text="Skateboard" Display="Display.Block" Width="Width.Is100" class="carousel-image" />
+		</CarouselSlide>
+	</Carousel>
+</Container>
+
+
+
+
+
+
+
+
+
